@@ -928,4 +928,135 @@ Ahora, si todo va bien y pudieron hacer andar la aplocacion hasta aqui, entonces
 
 Con este nuevo cambio, al implementar el nuevo decorador, si la persona que quiera entrar no tiene acceso, entonces sera redireccionado al home.
 
->nota: En cuanto a la logica de cerrar sesion, no es muy diferente a la que ya hicimos, por lo que lo dejo para que puedan verlo en el repositorio, porque a esta altura no veo el valor de mostar lo mismo.
+>Nota: En cuanto a la logica de cerrar sesion, no es muy diferente a la que ya hicimos, por lo que lo dejo para que puedan verlo en el repositorio, porque a esta altura no veo el valor de mostar lo mismo.
+
+Ahora, se nos presenta el siguiente problema y ese es que necesitamos mantener el estado de sesion mostrado en el nav. ya que despues de recargar con el nuevo swichmap este se "borra" del nav, aunque todavia estamos iniciando sesion.
+
+Para entender esto es necesario hablar del estado de la aplicacion. Se lo conoce como “estado” al valor de los datos que la aplicación utiliza en un momento dado. A medida que el usuario interactúa con la app, el estado cambia.
+
+¿Cómo conocer el estado del usuario?
+Una buena manera de conocer el estado del usuario en todo momento es creando un Observable que notifique a los interesados si hay algún cambio en los datos del mismo.
+
+En nuestro store.services ya habiamos applicado un principio de reactividad. Este nos va a servir como ejemplo para hacer uno similar para los usuarios. Vamos a nuestro Auth service y apliquemos la logica necesaria
+
+
+    export class AuthService {
+
+      urlApi = `${environment.API_URL}/api/auth`
+      private user = new BehaviorSubject<User | null>(null);
+      user$ = this.user.asObservable();
+
+      loguin(){
+        ...
+      }
+        
+      profile() {
+        return this.http.get<User>(`${this.urlApi}/profile`)
+        //evita que la session desaparesca del nav
+        .pipe(
+          tap(user => this.user.next(user))
+        )
+      }
+
+      logout(){
+        ...
+      }
+    }
+
+Desppues de agregar el ultimo pipe vamos a nuestro guardian e inyectemos este servicio
+
+    import { map } from 'rxjs';
+    ...
+
+    export class AuthGuard implements CanActivate {
+
+      constructor(
+        private TokenService: TokenService,
+        private router: Router,
+        private authService: AuthService
+      ) { }
+
+      canActivate(
+        route: ActivatedRouteSnapshot,
+        state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+        const token = this.TokenService.getToken();
+        //return token ? true : false;
+        return this.authService.user$.pipe(
+          map(user => {
+            if (!user) {
+              this.router.navigate(['/home'])
+              return false
+            }
+            return true
+          })
+        )
+      }
+    }
+
+Con esto echo ahora podemos volver a nuestro componente profile y, en vez de llamar al perfil llamaremos a nuestro observable
+
+    export class ProfileComponent implements OnInit {
+
+      user: User | null = null;
+
+      constructor(private authService: AuthService) { }
+
+      ngOnInit(): void {
+        this.authService.user$
+          .subscribe(data => {
+            this.user = data
+          })
+      }
+    }
+
+Para que el nav este escuchando siempre nuestro estado vamos a hacer algo parecido,
+
+    export class NavComponent implements OnInit {
+      
+      ...
+
+      ngOnInit(): void {
+        this.storeService.myCart$.subscribe(products => {
+          this.counter = products.length;
+        })
+        this.getAllCategories();
+        this.authService.user$
+          .subscribe(data => {
+            this.profile = data;
+          })
+      }
+
+        login() {
+          this.authService.login("john@mail.com", "changeme")
+            .subscribe(data => {
+              //this.profile = data;
+              this.router.navigate(['/profile']);
+            })
+          console.log(this.profile)
+        }
+        ...
+    }
+
+Login ya no se encargara de cargar nuestro perfil, sino que dejaremos a la duncion ngOnInit() ese trabajo.
+
+Hasta aqui no se soluciono nada y eso es porque en nuestro auth.service inicializamos en null a nuestro usuaio, por lo que al recargar volvera a null, para terminar la solucion vamos a nuestro componente app y agregamos.
+
+
+    export class AppComponent implements OnInit {
+      token = '';
+
+      constructor(
+        private authService: AuthService,
+        private userService: UserService,
+        private tokenService: TokenService
+      ) { }
+
+      ngOnInit(): void {
+        const token = this.tokenService.getToken()
+        if (token) {
+          this.authService.profile().subscribe()
+        }
+      }
+    }
+
+De esta manera le pregunto una sola vez a la aplicacion, si hay un token que 

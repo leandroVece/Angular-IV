@@ -3,6 +3,8 @@ import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot, UrlTree } fro
 import { Observable } from 'rxjs';
 import { TokenService } from '../services/token.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +13,8 @@ export class AuthGuard implements CanActivate {
 
   constructor(
     private TokenService: TokenService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) { }
 
   canActivate(
@@ -19,11 +22,19 @@ export class AuthGuard implements CanActivate {
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     const token = this.TokenService.getToken();
     //return token ? true : false;
-    if (!token) {
-      this.router.navigate(['/home'])
-      return false
-    }
-    return true
+    // if (!token) {
+    //   this.router.navigate(['/home'])
+    //   return false
+    // }
+    // return true
+    return this.authService.user$.pipe(
+      map(user => {
+        if (!user) {
+          this.router.navigate(['/home'])
+          return false
+        }
+        return true
+      })
+    )
   }
-
 }

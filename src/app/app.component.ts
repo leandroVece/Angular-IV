@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
-import { AuthService } from './services/auth.service';
+import { Component, OnInit } from '@angular/core';
 import { UserService } from './services/user.service';
+import { AuthService } from './services/auth.service';
+import { TokenService } from './services/token.service';
+
+
 
 
 @Component({
@@ -8,14 +11,21 @@ import { UserService } from './services/user.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   token = '';
 
   constructor(
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private tokenService: TokenService
   ) { }
 
+  ngOnInit(): void {
+    const token = this.tokenService.getToken()
+    if (token) {
+      this.authService.profile().subscribe()
+    }
+  }
   /*createUser() {
     this.userService.create({
       name: 'Torres Castellano',
@@ -40,7 +50,7 @@ export class AppComponent {
         .subscribe(
           profile => {
             console.log(profile)
-  
+
           }
         );
     }*/

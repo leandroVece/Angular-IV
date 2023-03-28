@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { StoreService } from "../../../services/store.service";
 import { Category } from '../../../models/product.model';
 import { CategoriesService } from '../../../services/categories.service';
@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss']
 })
-export class NavComponent {
+export class NavComponent implements OnInit {
 
   counter = 0;
   token = '';
@@ -46,8 +46,8 @@ export class NavComponent {
 
   login() {
     this.authService.login("john@mail.com", "changeme")
-      .subscribe(data => {
-        this.profile = data;
+      .subscribe(() => {
+        //this.profile = data;
         this.router.navigate(['/profile']);
       })
     console.log(this.profile)

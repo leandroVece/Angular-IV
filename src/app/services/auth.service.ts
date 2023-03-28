@@ -29,11 +29,10 @@ export class AuthService {
   }
 
   profile() {
-    return this.http.get<User>(`${this.urlApi}/profile`, {
-      // headers: {
-      //   Authorization: `Bearer ${token}`,
-      // }
-    })
+    return this.http.get<User>(`${this.urlApi}/profile`)
+      .pipe(
+        tap(user => this.user.next(user))
+      )
   }
 
   logout() {
