@@ -11,7 +11,7 @@ import { environment } from './../../environments/environments';
 export class UserService {
 
   //urlApi = `${environment.API_URL}/api/users`
-  urlApi = "https://damp-spire-59848.herokuapp.com/";
+  urlApi = "https://damp-spire-59848.herokuapp.com/api/users";
 
   constructor(private http: HttpClient) { }
 

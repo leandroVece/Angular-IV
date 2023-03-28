@@ -1059,4 +1059,86 @@ Hasta aqui no se soluciono nada y eso es porque en nuestro auth.service iniciali
       }
     }
 
-De esta manera le pregunto una sola vez a la aplicacion, si hay un token que 
+De esta manera le pregunto una sola vez a la aplicacion, si hay un token que haga la peticion.
+
+
+## Guard para admin
+
+Comencemos creando el guardian para el admin
+
+    ng g g guards/admin
+
+En nuestro nuevo guardian enyectaremos el servicio que verificara nuestro rol en el sistema. La logica sera practicamente la misma solo que le agregaremos un paso diferente para validar la entrada.
+
+    import { Injectable } from '@angular/core';
+    import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot, UrlTree } from '@angular/router';
+    import { Observable } from 'rxjs';
+    import { Router } from '@angular/router';
+    import { map } from 'rxjs';
+    import { AuthService } from '../services/auth.service';
+
+    @Injectable({
+      providedIn: 'root'
+    })
+    export class AdminGuard implements CanActivate {
+
+      constructor(
+        private TokenService: TokenService,
+        private router: Router,
+        private authService: AuthService
+      ) { }
+
+      canActivate(
+        route: ActivatedRouteSnapshot,
+        state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+        return this.authService.user$.pipe(
+          map(user => {
+            if (user?.role === 'admin') {
+              return true
+            } else {
+              this.router.navigate(['/home'])
+              return false
+            }
+          })
+        )
+      }
+
+    }
+
+Una vez terminado faltaria la importacion de nuestro guardian.
+
+    import { AdminGuard } from './guards/admin.guard';
+
+    const routes: Routes = [
+    {
+      path: '',
+      component: LayoutComponent,
+      children: [
+        ...
+        ]
+    },
+    {
+      path: 'cms',
+      canActivate: [AdminGuard],
+      loadChildren: () => import('./cms/cms.module').then(m => m.CmsModule),
+      data: {
+        preload: true
+      }
+    },
+    {
+      path: '**',
+      component: NotFoundComponent
+    }
+  ];
+
+Ahora si vas a esta [url](https://damp-spire-59848.herokuapp.com/api/users) y miras los usuarios, al loguear con una cuenta admin podras probar si tienes acceso al cms o no
+
+>Nota: hasta aqui, no podremos ir csm desde el navegador por lo que tendremos que crear un boton. esto pasa a que cada vez que recargamos la pagina, este tiene que acceder al token, pero al ir a un nuevo modulo, este no tiene la logica para acceder al token.
+
+    <div *ngIf="user">
+      <h1>My Profile</h1>
+      <p>Nombre: {{ user.name }}</p>
+      <p>Email: {{ user.email }}</p>
+      <p>Role: {{ user.role }}</p>
+      <a *ngIf="user.role === 'admin'" routerLink="/cms">Ir al CMS</a>
+    </div>

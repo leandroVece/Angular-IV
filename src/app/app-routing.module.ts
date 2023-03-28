@@ -14,6 +14,7 @@ import { ProductDetailComponent } from './webSite/pages/product-detail/product-d
 import { LayoutComponent } from './webSite/components/layout/layout.component';
 
 import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
   {
@@ -61,6 +62,7 @@ const routes: Routes = [
   },
   {
     path: 'cms',
+    canActivate: [AdminGuard],
     loadChildren: () => import('./cms/cms.module').then(m => m.CmsModule),
     data: {
       preload: true
