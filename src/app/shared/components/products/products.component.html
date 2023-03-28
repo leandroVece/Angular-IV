@@ -1,0 +1,23 @@
+<button (click)="createProduct()">create</button>
+<button (click)="OnLoadMore()">Ver mas</button>
+<div class="products--grid">
+  <app-product [product]="product" *ngFor="let product of products" (addedProduct)="onAddToShoppingCart($event)"
+    (ShowProduct)="OnShowDetail($event)"></app-product>
+</div>
+<div class="product-detail" [class.active]="showProduct">
+  <div>
+    <button (click)="toggleProduct()">close</button>
+
+    <h1>{{ producChosen?.title }}</h1>
+
+    <swiper-container #swiper initial-slide="0" pagination="true" slides-per-view="1">
+      <swiper-slide *ngFor="let img of producChosen?.images">
+        <img [src]="img" width="100%" alt="{{ producChosen?.title }}" />
+      </swiper-slide>
+    </swiper-container>
+
+    <p>{{ producChosen?.description }}</p>
+    <button (click)="UpdateProduct()">Editar</button>
+    <button (click)="DeleteProduct()">Eliminar</button>
+  </div>
+</div>

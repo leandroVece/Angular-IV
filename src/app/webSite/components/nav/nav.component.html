@@ -1,0 +1,21 @@
+<header class="header">
+  <div class="d-flex-mobile">
+    <a routerLink="home" class="logo">CompanyLogo</a>
+    <div class="show-side-menu">
+      <app-side-menu [categories]="categories"></app-side-menu>
+    </div>
+  </div>
+  <div class="header-right hidde-menu">
+    <div class="menuCategoria" *ngFor="let item of categories">
+      <a routerLinkActive="active" [routerLink]="['/category', item.id]">{{ item.name }}</a>
+    </div>
+    <a href="#">Carrito <span>{{counter}}</span></a>
+    <div class="menuCategoria">
+      <button class="log" *ngIf="!profile; else elseBlock" (click)="login()">Login</button>
+      <ng-template #elseBlock>
+        <a routerLink="/profile">{{ profile?.email }}</a>
+        <button class="log" (click)="logout()">Logout</button>
+      </ng-template>
+    </div>
+  </div>
+</header>

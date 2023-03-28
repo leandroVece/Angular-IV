@@ -1,0 +1,18 @@
+<div id="main">
+  <button class="openbtn" (click)="toggleSideBar()">☰</button>
+</div>
+<div id="mySidebar" class="sidebar" [ngClass]="this.showMenu ? 'showMenu' : ''">
+  <a href="javascript:void(0)" class="closebtn" (click)="toggleSideBar()">×</a>
+  <a routerLinkActive="active" routerLink="home">Home</a>
+  <div class="header-right hidde-menu">
+    <div class="menuCategoria" *ngFor="let item of categories">
+      <a routerLinkActive="active" [routerLink]="['/category', item.id]">{{ item.name }}</a>
+    </div>
+    <a href="#">Carrito <span>{{counter}}</span></a>
+    <button *ngIf="!profile; else elseBlock" (click)="login()">Login</button>
+    <ng-template #elseBlock>
+      <a routerLink="/profile">{{ profile?.email }}</a>
+      <button (click)="logout()">Logout</button>
+    </ng-template>
+  </div>
+</div>
